@@ -2,6 +2,10 @@ ARG VERSION=latest
 
 FROM sonatype/nexus3:${VERSION}
 
+LABEL \
+  maintainer="https://github.com/olblak"\
+  project="https://github.com/olblak/nexus-docker"
+
 ENV LDAP_URL="ldap"
 
 COPY --chown=nexus:nexus groovy_scripts.d /opt/sonatype/nexus/groovy_scripts.d
