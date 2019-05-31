@@ -6,8 +6,7 @@ services:
     build: .
     image: olblak/nexus:latest
     volumes:
-        - ./mock/config_password:/secrets/admin_password
-        - ./mock/secret_ldap:/secrets/ldap_password
+        - ./mock/secrets:/secrets
         - ./postStart.sh:/opt/sonatype/nexus/postStart.sh
     depends_on:
         - ldap
