@@ -1,0 +1,5 @@
+{
+    "name": "07-maven-group",
+    "type": "groovy",
+    "content": "def members = ['maven-jenkinsci', 'jenkins-public', 'maven-public','maven-central', 'maven-releases', 'maven-snapshots', 'spring-milestone', 'spring-release', 'jitpack']\nrepository.createMavenGroup('maven-group', members)"
+  }
