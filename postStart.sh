@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e    # Abort script at first error
+#set -e    # Abort script at first error
 set -u    # Attempt to use undefined variable outputs error message, and forces an exit
 # set -x  # For debugging purpose
 
@@ -11,17 +11,17 @@ set -u    # Attempt to use undefined variable outputs error message, and forces 
 function applyScript {
     SCRIPT=$1 
     echo "Apply Script ${SCRIPT}"
-    RC=$(curl -u "${USERNAME}:${PASSWORD}" "http://${HOST}/service/rest/v1/script/${SCRIPT}" -w '%{response_code}' -so /dev/null )
+    RC=$(curl -u "${USERNAME}:${PASSWORD}" "http://${HOST}/service/rest/v1/script/${SCRIPT}" -w '%{response_code}' )
 
     if [ "$RC" == "200" ]; then
         echo "Script ${SCRIPT} will be updated"
-        curl -u "${USERNAME}:${PASSWORD}" -X PUT --header "Content-Type: application/json" "http://$HOST/service/rest/v1/script/${SCRIPT}" -d "@/opt/sonatype/nexus/groovy_scripts.d/${SCRIPT}.json"
+        curl -u "${USERNAME}:${PASSWORD}" -X PUT --max-time 10 --header "Content-Type: application/json" "http://$HOST/service/rest/v1/script/${SCRIPT}" -d "@/opt/sonatype/nexus/groovy_scripts.d/${SCRIPT}.json"
     else
         echo "Script ${SCRIPT} will be created"
-        curl -u "${USERNAME}:${PASSWORD}" -X POST --header "Content-Type: application/json" "http://$HOST/service/rest/v1/script/" -d "@/opt/sonatype/nexus/groovy_scripts.d/${SCRIPT}.json"
+        curl -u "${USERNAME}:${PASSWORD}" -X POST --max-time 10 --header "Content-Type: application/json" "http://$HOST/service/rest/v1/script/" -d "@/opt/sonatype/nexus/groovy_scripts.d/${SCRIPT}.json"
     fi
     echo "Execute ${SCRIPT} script"
-    curl -X POST -u "${USERNAME}:${PASSWORD}" --header "Content-Type: text/plain" "http://${HOST}/service/rest/v1/script/${SCRIPT}/run"
+    curl -X POST -u "${USERNAME}:${PASSWORD}" --max-time 10 --header "Content-Type: text/plain" "http://${HOST}/service/rest/v1/script/${SCRIPT}/run"
 
 }
 
@@ -31,17 +31,17 @@ function configureScript {
 }
 
 function isNexusReady {
-  until curl --output /dev/null --silent --head --fail "http://$HOST/"; do
+  until curl -u "${USERNAME}:${PASSWORD}" --silent --head --fail "http://$HOST/service/rest/v1/status/writable"; do
     printf '.'
     sleep 5
   done
 }
 
-function ensureFilePermission {
-  chgrp -R 0 /nexus-data
-  chmod -R g+rw /nexus-data
-  find /nexus-data -type d -exec chmod g+x {} +
-}
+#function ensureFilePermission {
+#  chgrp -R 0 /nexus-data
+#  chmod -R g+rw /nexus-data
+#  find /nexus-data -type d -exec chmod g+x {} +
+#}
 
 function changeDefaultPassword {
   if curl --fail --silent -u $USERNAME:$PASSWORD http://$HOST/service/metrics/ping
@@ -61,7 +61,7 @@ function applyScripts {
   done
 }
 
-ensureFilePermission
-isNexusReady
+#ensureFilePermission
 changeDefaultPassword
+isNexusReady
 applyScripts
